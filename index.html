@@ -255,19 +255,14 @@ Tap to select date</span>
             <div style="font-size:13px;font-weight:500;margin-top:4px;">LOGOUT</div>
         </button>
     </div>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <script>
-//====================Supabase连接信息【已经填好】====================
 const SUPABASE_URL = "https://zszgnvnjqgtummlhqqvh.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpzemdudm5qZ3F0dW1tbGhxcXZoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAxNzUxODcsImV4cCI6MjEwNTc1MTE4N30.gC-Nn5CMCYpNYfofAfgjvBGrl1Ym-rnPvRFCNJZLf3Q";
-//==================================================================
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
 const birthInput = document.getElementById("reg-birth");
 const birthSelector = document.getElementById("birthSelector");
 const birthPlaceholder = document.getElementById("birthPlaceholder");
-
 birthInput.addEventListener("change", function () {
     if (birthInput.value) {
         const [y, m, d] = birthInput.value.split("-");
@@ -278,20 +273,16 @@ birthInput.addEventListener("change", function () {
         birthSelector.classList.remove("has-value");
     }
 });
-
 function showPage(pageId) {
     document.querySelectorAll(".card").forEach(el => el.classList.add("hidden"));
     document.getElementById(pageId).classList.remove("hidden");
 }
-
 let loginCustomer = null;
-
 async function userRegister() {
     const name = document.getElementById("reg-name").value.trim();
     let phone = document.getElementById("reg-phone").value.trim();
     phone = phone.trim();
     let birthRaw = birthInput.value.trim();
-
     if (!name) {
         alert("请填写姓名 / Please fill name");
         return;
@@ -300,9 +291,7 @@ async function userRegister() {
         alert("手机号必须为10位数字，请重新输入 / Phone must be 10 digits");
         return;
     }
-
     const {data:existCus} = await supabase.from("customers").select("*").eq("phone",phone).single();
-
     if(existCus){
         if(existCus.is_deleted === true){
             await supabase.from("customers").update({is_deleted:false}).eq("phone",phone);
@@ -317,7 +306,6 @@ async function userRegister() {
             return;
         }
     }
-
     const newCus = {
         name: name,
         birth: birthRaw,
@@ -327,7 +315,6 @@ async function userRegister() {
         bind_products:[],
         is_deleted:false
     };
-
     const {data,error} = await supabase.from("customers").insert([newCus]).select().single();
     if(error){
         alert("注册失败："+error.message);
@@ -337,7 +324,6 @@ async function userRegister() {
     alert("注册成功！请登录 / Registration successful! Please login");
     showPage("page-login");
 }
-
 async function userLogin() {
     let phone = document.getElementById("login-phone").value.trim();
     phone = phone.trim();
@@ -359,7 +345,6 @@ async function userLogin() {
     renderUserInfo(loginCustomer);
     showPage("page-user-info");
 }
-
 function renderUserInfo(u) {
     document.getElementById("u-name").innerText = u.name;
     if(u.birth){
@@ -374,13 +359,11 @@ function renderUserInfo(u) {
         document.getElementById("u-coupon").innerText = `Rm`;
     }
 }
-
 function userLogout() {
     loginCustomer = null;
     localStorage.removeItem("member_login_phone");
     showPage("page-home");
 }
-
 window.onload = async function () {
     const savedPhone = localStorage.getItem("member_login_phone");
     if(savedPhone){
@@ -399,3 +382,4 @@ window.onload = async function () {
 </script>
 </body>
 </html>
+
