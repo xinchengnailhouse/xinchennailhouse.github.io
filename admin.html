@@ -121,7 +121,6 @@ button{padding:10px 14px;border:none;border-radius:8px;cursor:pointer;font-size:
     <button class="btn-gray" onclick="hideChangePwd()">取消</button>
   </div>
 </div>
-
 <div id="pageMenu" class="box hide">
   <h2>功能菜单</h2>
   <div>
@@ -131,7 +130,6 @@ button{padding:10px 14px;border:none;border-radius:8px;cursor:pointer;font-size:
     <button class="btn-gray" style="width:100%;margin:6px 0" onclick="adminLogout()">退出登录</button>
   </div>
 </div>
-
 <div id="pageCustomerList" class="box hide">
   <h2>顾客信息列表</h2>
   <div class="customer-select-modal">
@@ -148,7 +146,6 @@ button{padding:10px 14px;border:none;border-radius:8px;cursor:pointer;font-size:
   <hr style="margin:14px 0;">
   <button class="btn-gray" onclick="backToMenu()">返回首页</button>
 </div>
-
 <div id="pageSelectCustomer" class="box hide">
   <h2>修改顾客数据 - 选择顾客</h2>
   <p>选择要修改的顾客（已归档顾客不会出现在此列表）</p>
@@ -164,7 +161,6 @@ button{padding:10px 14px;border:none;border-radius:8px;cursor:pointer;font-size:
   <br>
   <button class="btn-gray" onclick="backToMenu()">返回首页</button>
 </div>
-
 <div id="pageEditCustomer" class="box hide">
   <h2>修改顾客资料</h2>
   <p style="color:#c25448">【姓名、生日、手机号不可修改】</p>
@@ -198,7 +194,6 @@ button{padding:10px 14px;border:none;border-radius:8px;cursor:pointer;font-size:
   <button class="btn-gray" onclick="goSelectCustomer()">返回选择顾客</button>
   <button class="btn-gray" onclick="backToMenu()">返回首页</button>
 </div>
-
 <div id="pageProductManage" class="box hide">
   <h2>产品管理</h2>
   <button class="btn-success" onclick="goAddProduct()">+ 添加项目</button>
@@ -208,7 +203,6 @@ button{padding:10px 14px;border:none;border-radius:8px;cursor:pointer;font-size:
   <br>
   <button class="btn-gray" onclick="backToMenu()">返回首页</button>
 </div>
-
 <div id="pageAddProduct" class="box hide">
   <h2>添加产品</h2>
   <input id="addProdName" placeholder="产品名称">
@@ -220,7 +214,6 @@ button{padding:10px 14px;border:none;border-radius:8px;cursor:pointer;font-size:
   <br>
   <button class="btn-gray" onclick="goProductManage()">返回产品列表</button>
 </div>
-
 <div id="prodEditModal" class="modal-overlay hide">
   <div class="modal-box">
     <h3>修改产品</h3>
@@ -236,15 +229,11 @@ button{padding:10px 14px;border:none;border-radius:8px;cursor:pointer;font-size:
   </div>
 </div>
 </div>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <script>
-//====================Supabase连接信息【已经填好】====================
 const SUPABASE_URL = "https://zszgnvnjqgtummlhqqvh.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpzemdudm5qZ3F0dW1tbGhxcXZoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAxNzUxODcsImV4cCI6MjEwNTc1MTE4N30.gC-Nn5CMCYpNYfofAfgjvBGrl1Ym-rnPvRFCNJZLf3Q";
-//==================================================================
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
 let adminPassword = "";
 let currentEditCustomerId = null;
 let currentEditProductId = null;
@@ -252,7 +241,6 @@ let showDeletedCustomer = false;
 let tempViewCustomerId = null;
 let customerList = [];
 let productList = [];
-
 function hideAllPage(){
   document.querySelectorAll("[id^=page]").forEach(el=>el.classList.add("hide"));
 }
@@ -260,12 +248,10 @@ function showPage(id){
   hideAllPage();
   document.getElementById(id).classList.remove("hide");
 }
-
 async function loadAdminPwd(){
   const {data} = await supabase.from("admin_account").select("admin_password").eq("id",1).single();
   adminPassword = data.admin_password;
 }
-
 async function adminLogin(){
   await loadAdminPwd();
   const val = document.getElementById("adminPwd").value;
@@ -273,14 +259,12 @@ async function adminLogin(){
   localStorage.setItem("nail_adminIsLogin", "true");
   showPage("pageMenu");
 }
-
 function adminLogout(){
   localStorage.removeItem("nail_adminIsLogin");
   showPage("pageAdminLogin");
 }
 function showChangePwd(){document.getElementById("changePwdWrap").classList.remove("hide");}
 function hideChangePwd(){document.getElementById("changePwdWrap").classList.add("hide");}
-
 async function saveAdminPwd(){
   await loadAdminPwd();
   const old = document.getElementById("oldPwd").value;
@@ -295,18 +279,15 @@ async function saveAdminPwd(){
   alert("密码修改成功");
   hideChangePwd();
 }
-
 function backToMenu(){showPage("pageMenu");}
 function goCustomerList(){showPage("pageCustomerList");renderCustomerListView();}
 function goSelectCustomer(){showPage("pageSelectCustomer");renderSelectCustomerView();}
 function goProductManage(){showPage("pageProductManage");renderProductManageView();}
 function goAddProduct(){showPage("pageAddProduct");}
-
 function toggleShowDeleted(){
   showDeletedCustomer = !showDeletedCustomer;
   filterViewCustomer();
 }
-
 let viewPanelOpen = false;
 function toggleViewCustomerPanel(){
   viewPanelOpen = !viewPanelOpen;
@@ -314,7 +295,6 @@ function toggleViewCustomerPanel(){
   if(viewPanelOpen){panelDom.classList.remove("hide");filterViewCustomer();}
   else{panelDom.classList.add("hide");}
 }
-
 async function renderCustomerListView(){
   document.getElementById("searchViewCustomer").value="";
   document.getElementById("viewCustomerDetail").classList.add("hide");
@@ -325,7 +305,6 @@ async function renderCustomerListView(){
   const {data} = await supabase.from("customers").select("*").order("id",{ascending:false});
   customerList = data;
 }
-
 function filterViewCustomer(){
   const kw = document.getElementById("searchViewCustomer").value.trim().toLowerCase();
   const box = document.getElementById("viewCustomerBtnBox");
@@ -340,7 +319,6 @@ function filterViewCustomer(){
     }
   })
 }
-
 function showOneCustomer(cid){
   toggleViewCustomerPanel();
   tempViewCustomerId = cid;
@@ -382,7 +360,6 @@ function showOneCustomer(cid){
   `;
   detailDom.classList.remove("hide");
 }
-
 async function deleteCustomer(cid){
   const choice = confirm("请选择操作：\n【确定】=归档该顾客（保留全部资料，顾客无法登录，同手机号注册可以恢复）\n【取消】=关闭弹窗，再次点删除可以做永久彻底删除");
   if(choice){
@@ -397,14 +374,12 @@ async function deleteCustomer(cid){
     }
   }
 }
-
 async function restoreCustomer(cid){
   if(!confirm("确定恢复该归档顾客？恢复后顾客可以正常登录，重新出现在普通顾客列表")) return;
   await supabase.from("customers").update({is_deleted:false}).eq("id",cid);
   await renderCustomerListView();
   showOneCustomer(cid);
 }
-
 let editPanelOpen = false;
 function toggleEditCustomerPanel(){
   editPanelOpen = !editPanelOpen;
@@ -412,7 +387,6 @@ function toggleEditCustomerPanel(){
   if(editPanelOpen){panelDom.classList.remove("hide");filterCustomerList();}
   else{panelDom.classList.add("hide");}
 }
-
 async function renderSelectCustomerView(){
   document.getElementById("searchCustomerInput").value = "";
   document.getElementById("editSelectedText").innerText = "";
@@ -421,7 +395,6 @@ async function renderSelectCustomerView(){
   const {data} = await supabase.from("customers").select("*").order("id",{ascending:false});
   customerList = data;
 }
-
 function filterCustomerList(){
   const keyword = document.getElementById("searchCustomerInput").value.trim().toLowerCase();
   const box = document.getElementById("selectCustomerBox");
@@ -433,7 +406,6 @@ function filterCustomerList(){
     }
   })
 }
-
 async function openEditCustomer(cid){
   toggleEditCustomerPanel();
   const cus = customerList.find(x=>x.id===cid);
@@ -448,7 +420,6 @@ async function openEditCustomer(cid){
   document.getElementById("showProdCount").innerText = "无";
   showPage("pageEditCustomer");
 }
-
 async function renderProductSelect(){
   const sel=document.getElementById("prodSelectBox");
   sel.innerHTML=`<option value="">--选择产品--</option>`;
@@ -458,7 +429,6 @@ async function renderProductSelect(){
     sel.innerHTML+=`<option value="${p.id}">${p.name}｜Rm${p.price}</option>`;
   })
 }
-
 function refreshShowProdCount(){
   const pid = Number(document.getElementById("prodSelectBox").value);
   const cus = customerList.find(x=>x.id===currentEditCustomerId);
@@ -473,7 +443,6 @@ function refreshShowProdCount(){
     document.getElementById("showProdCount").innerText = "无";
   }
 }
-
 async function addProductCount(){
   const pid = Number(document.getElementById("prodSelectBox").value);
   if(!pid){alert("请先选择产品");return;}
@@ -492,7 +461,6 @@ async function addProductCount(){
   refreshShowProdCount();
   alert("已 +1次");
 }
-
 async function subProductCount(){
   const pid = Number(document.getElementById("prodSelectBox").value);
   if(!pid){alert("请先选择产品");return;}
@@ -508,7 +476,6 @@ async function subProductCount(){
   refreshShowProdCount();
   alert("已 -1次");
 }
-
 async function saveCustomerEdit(){
   const cus = customerList.find(x=>x.id===currentEditCustomerId);
   let rawPoint = document.getElementById("editPoint").value.trim();
@@ -521,7 +488,6 @@ async function saveCustomerEdit(){
   await renderCustomerListView();
   alert("保存更新完成");
 }
-
 async function renderProductManageView(){
   const box = document.getElementById("renderProductList");
   box.innerHTML="";
@@ -540,7 +506,6 @@ async function renderProductManageView(){
     box.appendChild(div);
   })
 }
-
 document.getElementById("renderProductList").addEventListener("click",async function(e){
   const target = e.target;
   const prodIdStr = target.dataset.prodId;
@@ -552,7 +517,6 @@ document.getElementById("renderProductList").addEventListener("click",async func
     await deleteProduct(prodId);
   }
 })
-
 function openEditProductModal(prodId){
   currentEditProductId = prodId;
   const p = productList.find(item=>item.id === prodId);
@@ -564,48 +528,8 @@ function closeProdModal(){
   document.getElementById("prodEditModal").classList.add("hide");
   currentEditProductId = null;
 }
-
 async function saveModalProduct(){
   const prodId = currentEditProductId;
   if(prodId === null) return;
   const name = document.getElementById("modalEditProdName").value.trim();
-  const price = Number(document.getElementById("modalEditProdPrice").value);
-  if(!name){alert("产品名称不能为空");return;}
-  if(!price || price <0){alert("请输入合法价格");return;}
-  const {error} = await supabase.from("products").update({name:name,price:price}).eq("id",prodId);
-  if(error){alert("修改失败");return;}
-  closeProdModal();
-  await renderProductManageView();
-  alert("产品修改成功");
-}
-
-async function deleteProduct(prodId){
-  if(!confirm("确认永久删除该产品？")) return;
-  const {error} = await supabase.from("products").delete().eq("id",prodId);
-  if(error){alert("删除失败");return;}
-  await renderProductManageView();
-}
-
-async function confirmAddProduct(){
-  const name = document.getElementById("addProdName").value.trim();
-  const price = Number(document.getElementById("addProdPrice").value);
-  if(!name){alert("填写产品名称");return;}
-  const {error} = await supabase.from("products").insert([{name:name,price:price}]);
-  if(error){alert("添加产品失败");return;}
-  document.getElementById("addProdName").value="";
-  document.getElementById("addProdPrice").value="";
-  await renderProductManageView();
-  goProductManage();
-}
-
-window.onload=async ()=>{
-  const isLogin = localStorage.getItem("nail_adminIsLogin") === "true";
-  if(isLogin){
-    showPage("pageMenu");
-  }else{
-    showPage("pageAdminLogin");
-  }
-}
-</script>
-</body>
-</html>
+  const price = Number(document.getElementById("modalEditProdPrice").value)
