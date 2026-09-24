@@ -1,134 +1,397 @@
 <!DOCTYPE html>
 <html lang="zh">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>会员注册登录</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>会员系统</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdn.jsdelivr.net/npm/eruda"></script>
-<script>eruda.init();</script>
-<style>
-*{box-sizing:border-box;font-family:system-ui}
-body{padding:24px;margin:0;background:#f7f7f7}
-.container{max-width:420px;margin:0 auto;background:#fff;padding:24px;border-radius:12px}
-h2{text-align:center}
-input{width:100%;padding:12px;margin:8px 0;border:1px solid #ddd;border-radius:8px;font-size:16px}
-button{width:100%;padding:12px;margin:8px 0;background:#222;color:#fff;border:none;border-radius:8px;font-size:16px}
-</style>
+<script>
+// ===================== 填入你的Supabase信息 =====================
+const SUPABASE_URL = "填入你的url";
+const SUPABASE_ANON_KEY = "填入你的anon密钥";
+// ==============================================================
+const { createClient } = window.supabase;
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+</script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+        }
+        body {
+            background-color: #f8efe0;
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .card {
+            background: #fff8e6;
+            border-radius: 30px;
+            padding: 32px 22px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+        }
+        .page-title {
+            text-align: center;
+            color: #6b4b3e;
+            font-size: 34px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+        .page-subtitle {
+            text-align: center;
+            color: #9a7b6c;
+            font-size: 18px;
+            margin-bottom: 26px;
+            letter-spacing: 1px;
+        }
+        .input-label {
+            font-size: 14px;
+            color: #776053;
+            margin: 12px 0 4px;
+            display: block;
+        }
+        .input-wrap {
+            position: relative;
+            width: 100%;
+            height: 72px;
+            border: 1px solid #d8c3b4;
+            border-radius: 16px;
+            background: #fff;
+            margin: 10px 0;
+        }
+        .input-wrap input {
+            width: 100%;
+            height: 100%;
+            border: 0;
+            outline: none;
+            background: transparent;
+            font-size: 15px;
+            padding: 0 16px;
+            color: #5a4034;
+        }
+        .two-line-placeholder {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+            color: #b5a194;
+            font-size: 13px;
+            text-align: center;
+            line-height: 1.6;
+        }
+        .input-wrap input:focus ~ .two-line-placeholder,
+        .input-wrap input:not(:placeholder-shown) ~ .two-line-placeholder {
+            display: none;
+        }
+        .birth-selector {
+            position: relative;
+            width: 100%;
+            height: 72px;
+            border: 1px solid #d8c3b4;
+            border-radius: 16px;
+            background: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            margin: 10px 0;
+        }
+        .birth-placeholder {
+            color: #b5a194;
+            font-size: 13px;
+            text-align: center;
+            line-height: 1.6;
+        }
+        .birth-selector.has-value .birth-placeholder {
+            color: #5a4034;
+            font-size: 15px;
+        }
+        .birth-selector input[type="date"] {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+        .birth-selector input[type="date"]::-webkit-calendar-picker-indicator {
+            display: none;
+        }
+        button {
+            width: 100%;
+            padding: 18px;
+            border: none;
+            border-radius: 22px;
+            font-size: 17px;
+            font-weight: 600;
+            margin: 12px 0;
+            cursor: pointer;
+            letter-spacing: 1px;
+        }
+        .btn-brown {
+            background: #b48873;
+            color: #ffffff;
+        }
+        .btn-light {
+            background: #e2d2c4;
+            color: #5c3c2e;
+        }
+        .info-item {
+            padding: 12px 0;
+            border-bottom: 1px solid #efe3d8;
+            color: #5a4034;
+        }
+        .info-label {
+            font-size: 13px;
+            color: #9a7b6c;
+            margin-bottom: 3px;
+            letter-spacing: 1px;
+        }
+        .info-value {
+            font-size: 22px;
+            font-weight: 600;
+            color: #6b4b3e;
+        }
+        .hidden {
+            display: none !important;
+        }
+        .tip-row {
+            text-align: center;
+            margin-top: 16px;
+            cursor: pointer;
+        }
+        .tip-text {
+            color: #776053;
+            font-size: 15px;
+        }
+        .tip-text-en {
+            color: #a08779;
+            font-size: 12px;
+            margin-top: 4px;
+            letter-spacing: 1px;
+        }
+    </style>
 </head>
 <body>
-<div class="container">
-  <div id="loginBox">
-    <h2>会员登录</h2>
-    <input type="text" id="loginPhone" placeholder="请输入手机号">
-    <input type="password" id="loginPwd" placeholder="请输入密码">
-    <button onclick="userLogin()">登录</button>
-    <p style="text-align:center">还没有账号？<a href="#" onclick="showRegister()">去注册</a></p>
-  </div>
-
-  <div id="regBox" style="display:none;">
-    <h2>会员注册</h2>
-    <input type="text" id="regName" placeholder="姓名">
-    <input type="text" id="regPhone" placeholder="手机号（仅限10位数字）">
-    <input type="date" id="regBirthday" placeholder="生日">
-    <input type="password" id="regPwd" placeholder="设置登录密码">
-    <button onclick="userRegister()">注册</button>
-    <p style="text-align:center">已有账号？<a href="#" onclick="showLogin()">返回登录</a></p>
-  </div>
-
-  <div id="userInfo" style="display:none;">
-    <h2>会员资料</h2>
-    <p>姓名：<span id="uName"></span></p>
-    <p>手机号：<span id="uPhone"></span></p>
-    <p>生日：<span id="uBirth"></span></p>
-    <p>优惠券：<span id="uCoupon"></span></p>
-    <p>会员分数：<span id="uPoint"></span></p>
-    <button onclick="logout()">退出登录</button>
-  </div>
-</div>
-
+    <div id="page-home" class="card">
+        <div class="page-title">会员系统</div>
+        <div class="page-subtitle">MEMBER SYSTEM</div>
+        <button class="btn-brown" onclick="showPage('page-login')">
+            登录
+            <div style="font-size:13px;font-weight:500;margin-top:4px;">LOGIN</div>
+        </button>
+        <button class="btn-light" onclick="showPage('page-register')">
+            注册
+            <div style="font-size:13px;font-weight:500;margin-top:4px;">REGISTER</div>
+        </button>
+    </div>
+    <div id="page-login" class="card hidden">
+        <div class="page-title">登录</div>
+        <div class="page-subtitle">LOGIN</div>
+        <div class="input-wrap">
+            <input type="text" id="login-phone" placeholder=" ">
+            <span class="two-line-placeholder">请输入手机号
+Enter your phone number</span>
+        </div>
+        <button class="btn-brown" onclick="userLogin()">
+            登录
+            <div style="font-size:13px;font-weight:500;margin-top:4px;">LOGIN</div>
+        </button>
+        <div class="tip-row" onclick="showPage('page-home')">
+            <div class="tip-text">← 返回首页</div>
+            <div class="tip-text-en">BACK TO HOME</div>
+        </div>
+    </div>
+    <div id="page-register" class="card hidden">
+        <div class="page-title">注册</div>
+        <div class="page-subtitle">REGISTER</div>
+        <span class="input-label">姓名 / Name</span>
+        <div class="input-wrap">
+            <input type="text" id="reg-name" placeholder=" ">
+            <span class="two-line-placeholder">请输入姓名
+Enter your name</span>
+        </div>
+        <span class="input-label">手机号 / Phone Number</span>
+        <div class="input-wrap">
+            <input type="text" id="reg-phone" placeholder=" " oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+            <span class="two-line-placeholder">请输入10位手机号
+Enter 10‑digit phone</span>
+        </div>
+        <span class="input-label">生日 / Birthday</span>
+        <label class="birth-selector" id="birthSelector" for="reg-birth">
+            <span class="birth-placeholder" id="birthPlaceholder">点击选择日期
+Tap to select date</span>
+            <input type="date" id="reg-birth">
+        </label>
+        <button class="btn-brown" onclick="userRegister()">
+            完成注册
+            <div style="font-size:13px;font-weight:500;margin-top:4px;">REGISTER</div>
+        </button>
+        <div class="tip-row" onclick="showPage('page-home')">
+            <div class="tip-text">← 返回首页</div>
+            <div class="tip-text-en">BACK TO HOME</div>
+        </div>
+    </div>
+    <div id="page-user-info" class="card hidden">
+        <div class="page-title">我的会员资料</div>
+        <div class="page-subtitle">MY MEMBER PROFILE</div>
+        <div class="info-item">
+            <div class="info-label">姓名 / NAME</div>
+            <div class="info-value" id="u-name">-</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">生日 / BIRTHDAY</div>
+            <div class="info-value" id="u-birth">-</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">会员积分 / MEMBER POINTS</div>
+            <div class="info-value" id="u-point">-</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">优惠券 / COUPON</div>
+            <div class="info-value" id="u-coupon">-</div>
+        </div>
+        <button class="btn-light" onclick="userLogout()">
+            退出登录
+            <div style="font-size:13px;font-weight:500;margin-top:4px;">LOGOUT</div>
+        </button>
+    </div>
 <script>
-// ==========【这里！你修改下面两行】==========
-const SUPABASE_URL = "填入你的数据库地址";
-const SUPABASE_KEY = "填入你的Publishable密钥";
-// =========================================
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+    const birthInput = document.getElementById("reg-birth");
+    const birthSelector = document.getElementById("birthSelector");
+    const birthPlaceholder = document.getElementById("birthPlaceholder");
+    birthInput.addEventListener("change", function () {
+        if (birthInput.value) {
+            const [y, m, d] = birthInput.value.split("-");
+            birthPlaceholder.textContent = `${y}/${Number(m)}/${Number(d)}`;
+            birthSelector.classList.add("has-value");
+        } else {
+            birthPlaceholder.textContent = "点击选择日期\nTap to select date";
+            birthSelector.classList.remove("has-value");
+        }
+    });
+    function showPage(pageId) {
+        document.querySelectorAll(".card").forEach(el => el.classList.add("hidden"));
+        document.getElementById(pageId).classList.remove("hidden");
+    }
 
-// 切换页面
-function showRegister(){
-  document.getElementById('loginBox').style.display='none';
-  document.getElementById('regBox').style.display='block';
-}
-function showLogin(){
-  document.getElementById('regBox').style.display='none';
-  document.getElementById('loginBox').style.display='block';
-}
+    let loginCustomer = null;
 
-// 注册
-async function userRegister(){
-  const name = document.getElementById('regName').value.trim();
-  const phone = document.getElementById('regPhone').value.trim();
-  const birthday = document.getElementById('regBirthday').value.trim();
-  const pwd = document.getElementById('regPwd').value.trim();
+    async function userRegister() {
+        const name = document.getElementById("reg-name").value.trim();
+        let phone = document.getElementById("reg-phone").value.trim();
+        phone = phone.trim();
+        let birthRaw = birthInput.value.trim();
+        if (!name) {
+            alert("请填写姓名 / Please fill name");
+            return;
+        }
+        if (!/^\d{10}$/.test(phone)) {
+            alert("手机号必须为10位数字，请重新输入 / Phone must be 10 digits");
+            return;
+        }
 
-  // 校验手机号10位
-  if(!/^\d{10}$/.test(phone)){
-    alert("手机号必须为10位数字，注册失败！");
-    return;
-  }
-  if(!name || !pwd){
-    alert("姓名和密码不能为空");
-    return;
-  }
-  // 查询手机号是否已经注册
-  const {data:existUser} = await supabase.from('customer_list').select('*').eq('phone',phone).single();
-  if(existUser){
-    alert("该手机号已经注册会员！");
-    return;
-  }
-  // 新增顾客，注册自动送Rm5优惠券
-  const {error} = await supabase.from('customer_list').insert([{
-    name:name,phone:phone,birthday:birthday,password:pwd,coupon:"Rm5",points:0,is_deleted:false
-  }])
-  if(error){
-    alert("注册失败："+error.message);
-    return;
-  }
-  alert("✅注册成功！自动获得Rm5优惠券");
-  showLogin();
-}
+        const {data:existRows} = await supabase.from('customer_list').select('*').eq('phone',phone);
+        const existCus = existRows[0];
+        if (existCus) {
+            if (existCus.is_deleted === true) {
+                await supabase.from('customer_list').update({is_deleted:false}).eq('phone',phone);
+                loginCustomer = existCus;
+                localStorage.setItem("member_login_phone", loginCustomer.phone);
+                alert("账号已恢复，欢迎回来 / Account restored, welcome back");
+                renderUserInfo(loginCustomer);
+                showPage("page-user-info");
+                return;
+            } else {
+                alert("该手机号已经注册，请直接登录 / Phone already registered, please login");
+                return;
+            }
+        }
+        const newId = Date.now();
+        const newCus = {
+            id: newId,
+            name: name,
+            birth: birthRaw,
+            phone: phone,
+            point: 0,
+            coupon: 5,
+            bind_products: [],
+            is_deleted: false
+        };
+        await supabase.from('customer_list').insert([newCus]);
+        loginCustomer = newCus;
+        alert("注册成功！请登录 / Registration successful! Please login");
+        showPage("page-login");
+    }
 
-// 登录
-async function userLogin(){
-  const phone = document.getElementById('loginPhone').value.trim();
-  const pwd = document.getElementById('loginPwd').value.trim();
-  const {data:user,error} = await supabase.from('customer_list').select('*').eq('phone',phone).single();
-  if(error || !user){
-    alert("手机号不存在");
-    return;
-  }
-  if(user.is_deleted === true){
-    alert("账号已被注销，请重新注册");
-    return;
-  }
-  if(user.password !== pwd){
-    alert("密码错误");
-    return;
-  }
-  // 登录成功展示资料
-  document.getElementById('loginBox').style.display='none';
-  document.getElementById('userInfo').style.display='block';
-  document.getElementById('uName').innerText = user.name;
-  document.getElementById('uPhone').innerText = user.phone;
-  document.getElementById('uBirth').innerText = user.birthday;
-  document.getElementById('uCoupon').innerText = user.coupon;
-  document.getElementById('uPoint').innerText = user.points;
-}
-function logout(){
-  document.getElementById('userInfo').style.display='none';
-  document.getElementById('loginBox').style.display='block';
-}
+    async function userLogin() {
+        let phone = document.getElementById("login-phone").value.trim();
+        phone = phone.trim();
+        if (!phone) {
+            alert("请输入手机号 / Please enter your phone number");
+            return;
+        }
+        const {data:rows} = await supabase.from('customer_list').select('*').eq('phone',phone);
+        const findCus = rows[0];
+        if (!findCus) {
+            alert("该手机号未注册，请先注册 / Phone number not registered, please register first");
+            return;
+        }
+        if (findCus.is_deleted === true) {
+            alert("该账号已归档注销，无法登录 / Account archived, cannot login");
+            return;
+        }
+        loginCustomer = findCus;
+        localStorage.setItem("member_login_phone", findCus.phone);
+        renderUserInfo(loginCustomer);
+        showPage("page-user-info");
+    }
+
+    function renderUserInfo(u) {
+        document.getElementById("u-name").innerText = u.name;
+        if(u.birth){
+            document.getElementById("u-birth").innerText = u.birth.replaceAll("-","/");
+        }else{
+            document.getElementById("u-birth").innerText = "未填写 / Not provided";
+        }
+        document.getElementById("u-point").innerText = u.point;
+        if(u.coupon > 0){
+            document.getElementById("u-coupon").innerText = `Rm${u.coupon}`;
+        }else{
+            document.getElementById("u-coupon").innerText = `Rm`;
+        }
+    }
+
+    function userLogout() {
+        loginCustomer = null;
+        localStorage.removeItem("member_login_phone");
+        showPage("page-home");
+    }
+
+    window.onload = async function () {
+        const savedPhone = localStorage.getItem("member_login_phone");
+        if(savedPhone){
+            const {data:rows} = await supabase.from('customer_list').select('*').eq('phone',savedPhone);
+            const findCus = rows[0];
+            if(findCus && findCus.is_deleted !== true){
+                loginCustomer = findCus;
+                renderUserInfo(loginCustomer);
+                showPage("page-user-info");
+                return;
+            }else{
+                localStorage.removeItem("member_login_phone");
+            }
+        }
+        showPage("page-home");
+    };
 </script>
 </body>
 </html>
-
