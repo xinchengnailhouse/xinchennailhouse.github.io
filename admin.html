@@ -1,80 +1,610 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>会员后台管理</title>
+<title>XIN CHEN NAIL HOUSE</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdn.jsdelivr.net/npm/eruda"></script>
-<script>eruda.init();</script>
+<script>
+// =====================填入Supabase信息，和会员端一样=====================
+const SUPABASE_URL = "填入你的url";
+const SUPABASE_ANON_KEY = "填入你的anon密钥";
+const { createClient } = window.supabase;
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+</script>
 <style>
-*{box-sizing:border-box;font-family:system-ui}
-body{padding:20px;background:#f4f4f4}
-.container{max-width:600px;margin:0 auto;background:#fff;padding:20px;border-radius:10px}
-h2{text-align:center}
-.customer-item{border:1px solid #eee;padding:12px;margin:8px 0;border-radius:8px}
-button{padding:8px;margin:4px;border:none;border-radius:6px}
-.btn-del{background:#dc3545;color:white}
-.btn-save{background:#198754;color:white}
+*{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;}
+body{background:#f7f1ee;color:#444;padding:16px;}
+.wrap{max-width:1080px;margin:0 auto;}
+.box{background:#fff;border-radius:14px;padding:20px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,0.06);}
+h2,h3{margin-bottom:16px;color:#2d2d2d;}
+input,select{width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:8px;margin:6px 0;font-size:15px;}
+button{padding:10px 14px;border:none;border-radius:8px;cursor:pointer;font-size:14px;margin:4px;}
+.btn-primary{background:#d8a89a;color:#fff;}
+.btn-danger{background:#e05c5c;color:#fff;}
+.btn-success{background:#72b892;color:#fff;}
+.btn-gray{background:#bbbbbb;color:#fff;}
+.btn-warning{background:#f2a93b;color:#fff;}
+.hide{display:none !important;}
+.customer-select-modal{
+  margin:12px 0;
+}
+.customer-scroll-list{
+  max-height: 220px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  border:1px solid #e9dfdb;
+  border-radius:10px;
+  padding:8px;
+  margin-top:10px;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+.customer-scroll-list button{
+  width:100%;
+  text-align:left;
+  margin:0;
+}
+.selected-customer-text{
+  margin:10px 0;
+  font-size:15px;
+  color:#333;
+}
+.customer-card{
+  border:1px solid #e9dfdb;
+  border-radius:10px;
+  padding:14px;
+  margin-top:12px;
+}
+.product-item{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  gap:8px;
+  padding:10px;
+  border:1px solid #eee;
+  border-radius:8px;
+  margin:6px 0;
+}
+.product-item .product-info{
+  font-size:15px;
+}
+.product-item .product-actions{
+  display:flex;
+  gap:4px;
+}
+.modal-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.45);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:999;
+}
+.modal-box{
+  background:#fff;
+  border-radius:14px;
+  padding:20px;
+  width:90%;
+  max-width:420px;
+}
+.input-rm-wrap{
+  position:relative;
+}
+.input-rm-wrap span{
+  position:absolute;
+  left:12px;
+  top:50%;
+  transform:translateY(-50%);
+  color:#444;
+  pointer-events:none;
+}
+.input-rm-wrap input{
+  padding-left:40px !important;
+}
+.tag-deleted{
+  color:#e05c5c;
+  font-weight:bold;
+}
 </style>
 </head>
 <body>
-<div class="container">
-  <h2>会员后台管理</h2>
-  <button onclick="loadAllCustomer()">刷新会员列表</button>
-  <button onclick="toggleDelView()">显示/隐藏已注销顾客</button>
-  <div id="listWrap"></div>
+<div class="wrap">
+<!--1.店家后台登录页-->
+<div id="pageAdminLogin" class="box">
+  <h2>XIN CHEN NAIL HOUSE</h2>
+  <h3>店家后台登录</h3>
+  <input type="password" id="adminPwd" placeholder="请输入密码">
+  <br>
+  <button class="btn-primary" onclick="adminLogin()">登录后台</button>
+  <button class="btn-gray" onclick="showChangePwd()">更换密码</button>
+  <div id="changePwdWrap" class="hide">
+    <hr style="margin:12px 0;">
+    <h4>更换管理员密码</h4>
+    <input type="password" id="oldPwd" placeholder="旧密码">
+    <input type="password" id="newPwd1" placeholder="新密码">
+    <input type="password" id="newPwd2" placeholder="确认新密码">
+    <button class="btn-success" onclick="saveAdminPwd()">确认设置</button>
+    <button class="btn-gray" onclick="hideChangePwd()">取消</button>
+  </div>
 </div>
-
+<!--2.功能菜单主页-->
+<div id="pageMenu" class="box hide">
+  <h2>功能菜单</h2>
+  <div>
+    <button class="btn-primary" style="width:100%;margin:6px 0" onclick="goCustomerList()">查看顾客信息</button>
+    <button class="btn-primary" style="width:100%;margin:6px 0" onclick="goSelectCustomer()">修改顾客信息</button>
+    <button class="btn-primary" style="width:100%;margin:6px 0" onclick="goProductManage()">添加产品</button>
+    <button class="btn-gray" style="width:100%;margin:6px 0" onclick="adminLogout()">退出登录</button>
+  </div>
+</div>
+<!--3.顾客信息列表页-->
+<div id="pageCustomerList" class="box hide">
+  <h2>顾客信息列表</h2>
+  <div class="customer-select-modal">
+    <button class="btn-primary" onclick="toggleViewCustomerPanel()">选择顾客</button>
+    <button class="btn-gray" onclick="toggleShowDeleted()">显示/隐藏已归档顾客</button>
+    <div class="selected-customer-text" id="viewSelectedText"></div>
+    <div id="viewCustomerPanel" class="hide">
+      <input type="text" id="searchViewCustomer" placeholder="输入顾客姓名搜索" oninput="filterViewCustomer()">
+      <div id="viewCustomerBtnBox" class="customer-scroll-list"></div>
+      <button class="btn-gray" onclick="toggleViewCustomerPanel()">收起列表</button>
+    </div>
+  </div>
+  <div id="viewCustomerDetail" class="customer-card hide"></div>
+  <hr style="margin:14px 0;">
+  <button class="btn-gray" onclick="backToMenu()">返回首页</button>
+</div>
+<!--4.修改顾客数据‑选择顾客页面-->
+<div id="pageSelectCustomer" class="box hide">
+  <h2>修改顾客数据 - 选择顾客</h2>
+  <p>选择要修改的顾客（已归档顾客不会出现在此列表）</p>
+  <div class="customer-select-modal">
+    <button class="btn-primary" onclick="toggleEditCustomerPanel()">选择顾客</button>
+    <div class="selected-customer-text" id="editSelectedText"></div>
+    <div id="editCustomerPanel" class="hide">
+      <input type="text" id="searchCustomerInput" placeholder="输入顾客姓名搜索" oninput="filterCustomerList()">
+      <div id="selectCustomerBox" class="customer-scroll-list"></div>
+      <button class="btn-gray" onclick="toggleEditCustomerPanel()">收起列表</button>
+    </div>
+  </div>
+  <br>
+  <button class="btn-gray" onclick="backToMenu()">返回首页</button>
+</div>
+<!--5.修改顾客数据‑编辑页【已修改：会员分数、优惠券固定标签文字，Rm固定前缀】-->
+<div id="pageEditCustomer" class="box hide">
+  <h2>修改顾客资料</h2>
+  <p style="color:#c25448">【姓名、生日、手机号不可修改】</p>
+  <input id="editName" readonly>
+  <input id="editBirth" readonly>
+  <input id="editPhone" readonly>
+  <div style="margin:8px 0;">
+    <label>会员分数</label>
+    <input id="editPoint" placeholder="填写会员分数">
+  </div>
+  <div style="margin:8px 0;">
+    <label>优惠券</label>
+    <div class="input-rm-wrap">
+      <span>Rm</span>
+      <input id="editCoupon" placeholder="输入优惠券金额">
+    </div>
+  </div>
+  <h4 style="margin-top:12px">产品次数操作</h4>
+  <select id="prodSelectBox" onchange="refreshShowProdCount()">
+    <option value="">--选择产品--</option>
+  </select>
+  <div style="margin:8px 0;font-size:16px;">
+    <span>当前剩余：<b id="showProdCount">无</b></span>
+  </div>
+  <div style="margin:8px 0;">
+    <button class="btn-danger" onclick="subProductCount()">‑</button>
+    <button class="btn-success" onclick="addProductCount()">+</button>
+  </div>
+  <br>
+  <button class="btn-success" onclick="saveCustomerEdit()">保存更新</button>
+  <button class="btn-gray" onclick="goSelectCustomer()">返回选择顾客</button>
+  <button class="btn-gray" onclick="backToMenu()">返回首页</button>
+</div>
+<!--6.产品管理首页 -->
+<div id="pageProductManage" class="box hide">
+  <h2>产品管理</h2>
+  <button class="btn-success" onclick="goAddProduct()">+ 添加项目</button>
+  <h3 style="margin-top:12px">产品列表</h3>
+  <div id="renderProductList">
+  </div>
+  <br>
+  <button class="btn-gray" onclick="backToMenu()">返回首页</button>
+</div>
+<!--7.添加产品页面-->
+<div id="pageAddProduct" class="box hide">
+  <h2>添加产品</h2>
+  <input id="addProdName" placeholder="产品名称">
+  <div class="input-rm-wrap">
+    <span>Rm</span>
+    <input type="number" id="addProdPrice" placeholder="填写价格">
+  </div>
+  <button class="btn-success" onclick="confirmAddProduct()">确认添加</button>
+  <br>
+  <button class="btn-gray" onclick="goProductManage()">返回产品列表</button>
+</div>
+<!--产品修改弹窗（全局弹窗）-->
+<div id="prodEditModal" class="modal-overlay hide">
+  <div class="modal-box">
+    <h3>修改产品</h3>
+    <input id="modalEditProdName" placeholder="产品名称">
+    <div class="input-rm-wrap">
+      <span>Rm</span>
+      <input type="number" id="modalEditProdPrice" placeholder="填写价格">
+    </div>
+    <div>
+      <button class="btn-success" onclick="saveModalProduct()">确认修改</button>
+      <button class="btn-gray" onclick="closeProdModal()">取消</button>
+    </div>
+  </div>
+</div>
+</div>
 <script>
-// ==========【这里！你修改下面两行】==========
-const SUPABASE_URL = "填入你的数据库地址";
-const SUPABASE_KEY = "填入你的Publishable密钥";
-// =========================================
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
-let showDeleted = false;
+let adminPassword = "123456";
+let currentEditCustomerId = null;
+let customerData = [];
+let productData = [];
+let currentEditProductId = null;
+let showDeletedCustomer = false;
+let tempViewCustomerId = null;
 
-async function loadAllCustomer(){
-  let query = supabase.from('customer_list').select('*');
-  if(!showDeleted) query = query.eq('is_deleted',false);
-  const {data:customerList,error} = await query;
-  if(error){
-    alert("读取会员失败："+error.message);
+async function loadAdminPwd(){
+  const {data} = await supabase.from('admin_config').select('admin_pwd').eq('id',1);
+  if(data && data[0]) adminPassword = data[0].admin_pwd;
+}
+async function saveAdminPwdRemote(pwd){
+  await supabase.from('admin_config').update({admin_pwd:pwd}).eq('id',1);
+}
+async function refreshAllCustomer(){
+  const {data} = await supabase.from('customer_list').select('*');
+  customerData = data.map(r=>({
+    id:r.id,
+    name:r.name,
+    birth:r.birth,
+    phone:r.phone,
+    point:Number(r.point),
+    coupon:Number(r.coupon),
+    bindProducts:r.bind_products||[],
+    isDeleted:r.is_deleted
+  }));
+}
+async function refreshAllProduct(){
+  const {data} = await supabase.from('product_list').select('*');
+  productData = data.map(p=>({id:p.id,name:p.name,price:Number(p.price)}));
+}
+async function saveOneCustomer(cusObj){
+  const payload = {
+    name:cusObj.name,
+    birth:cusObj.birth,
+    phone:cusObj.phone,
+    point:cusObj.point,
+    coupon:cusObj.coupon,
+    bind_products:cusObj.bindProducts,
+    is_deleted:cusObj.isDeleted
+  };
+  await supabase.from('customer_list').update(payload).eq('id',cusObj.id);
+}
+async function insertProduct(p){
+  await supabase.from('product_list').insert([{id:p.id,name:p.name,price:p.price}]);
+}
+async function updateProduct(p){
+  await supabase.from('product_list').update({name:p.name,price:p.price}).eq('id',p.id);
+}
+async function deleteProductRemote(pid){
+  await supabase.from('product_list').delete().eq('id',pid);
+}
+
+function hideAllPage(){
+  document.querySelectorAll("[id^=page]").forEach(el=>el.classList.add("hide"));
+}
+function showPage(id){
+  hideAllPage();
+  document.getElementById(id).classList.remove("hide");
+}
+
+async function adminLogin(){
+  await loadAdminPwd();
+  const val = document.getElementById("adminPwd").value;
+  if(val !== adminPassword){alert("密码错误");return;}
+  localStorage.setItem("nail_adminIsLogin", "true");
+  showPage("pageMenu");
+}
+function adminLogout(){
+  localStorage.removeItem("nail_adminIsLogin");
+  showPage("pageAdminLogin");
+}
+function showChangePwd(){document.getElementById("changePwdWrap").classList.remove("hide");}
+function hideChangePwd(){document.getElementById("changePwdWrap").classList.add("hide");}
+async function saveAdminPwd(){
+  await loadAdminPwd();
+  const old = document.getElementById("oldPwd").value;
+  const n1 = document.getElementById("newPwd1").value;
+  const n2 = document.getElementById("newPwd2").value;
+  if(old!==adminPassword){alert("旧密码不对");return;}
+  if(n1!==n2){alert("两次新密码不一致");return;}
+  if(!n1){alert("密码不能为空");return;}
+  adminPassword = n1;
+  await saveAdminPwdRemote(n1);
+  alert("密码修改成功");
+  hideChangePwd();
+}
+
+function backToMenu(){showPage("pageMenu");}
+async function goCustomerList(){
+  await refreshAllCustomer();
+  showPage("pageCustomerList");
+  renderCustomerListView();
+}
+async function goSelectCustomer(){
+  await refreshAllCustomer();
+  showPage("pageSelectCustomer");
+  renderSelectCustomerView();
+}
+async function goProductManage(){
+  await refreshAllProduct();
+  showPage("pageProductManage");
+  renderProductManageView();
+}
+function goAddProduct(){showPage("pageAddProduct");}
+
+function toggleShowDeleted(){
+  showDeletedCustomer = !showDeletedCustomer;
+  filterViewCustomer();
+}
+
+let viewPanelOpen = false;
+function toggleViewCustomerPanel(){
+  viewPanelOpen = !viewPanelOpen;
+  const panelDom = document.getElementById("viewCustomerPanel");
+  if(viewPanelOpen){
+    panelDom.classList.remove("hide");
+    filterViewCustomer();
+  }else{
+    panelDom.classList.add("hide");
+  }
+}
+function renderCustomerListView(){
+  document.getElementById("searchViewCustomer").value="";
+  document.getElementById("viewCustomerDetail").classList.add("hide");
+  document.getElementById("viewSelectedText").innerText = "";
+  viewPanelOpen = false;
+  tempViewCustomerId = null;
+  document.getElementById("viewCustomerPanel").classList.add("hide");
+}
+function filterViewCustomer(){
+  const kw = document.getElementById("searchViewCustomer").value.trim().toLowerCase();
+  const box = document.getElementById("viewCustomerBtnBox");
+  box.innerHTML="";
+  document.getElementById("viewCustomerDetail").classList.add("hide");
+  customerData.forEach(cus=>{
+    if(!showDeletedCustomer && cus.isDeleted === true) return;
+    if(cus.name.toLowerCase().includes(kw)){
+      let labelText = cus.name;
+      if(cus.isDeleted) labelText += " 【已归档】";
+      box.innerHTML += `<button class="btn-primary" onclick="showOneCustomer(${cus.id})">${labelText}</button>`;
+    }
+  })
+}
+function showOneCustomer(cid){
+  toggleViewCustomerPanel();
+  tempViewCustomerId = cid;
+  const cus = customerData.find(x=>x.id===cid);
+  let labelName = cus.name;
+  if(cus.isDeleted) labelName += " 【已归档】";
+  document.getElementById("viewSelectedText").innerText = "已选择："+labelName;
+  let productText = "无";
+  if(cus.bindProducts && cus.bindProducts.length>0){
+    const validProducts = cus.bindProducts.filter(bindItem => bindItem.count > 0);
+    if(validProducts.length > 0){
+      const arr = validProducts.map(bindItem=>{
+        const findProd = productData.find(p=>p.id === bindItem.prodId);
+        if(findProd){
+          return `${bindItem.prodName}/Rm${findProd.price} ×${bindItem.count}`;
+        }else{
+          return `${bindItem.prodName} ×${bindItem.count}`;
+        }
+      })
+      productText = arr.join("<br>");
+    }
+  }
+  const detailDom = document.getElementById("viewCustomerDetail");
+  let bottomBtns = "";
+  if(!cus.isDeleted){
+    bottomBtns = `<button class="btn-danger" onclick="deleteCustomer(${cus.id})">删除该顾客</button>`;
+  }else{
+    bottomBtns = `<button class="btn-warning" onclick="restoreCustomer(${cus.id})">恢复该顾客</button>`;
+  }
+  detailDom.innerHTML=`
+      <div>姓名：${cus.name} ${cus.isDeleted?'<span class="tag-deleted">【已归档】</span>':''}</div>
+      <div>生日：${cus.birth||''}</div>
+      <div>手机号：${cus.phone}</div>
+      <div>会员分数：${cus.point}</div>
+      <div>优惠券：Rm${cus.coupon}</div>
+      <div>产品次数：<br>${productText}</div>
+      <br>
+      ${bottomBtns}
+  `;
+  detailDom.classList.remove("hide");
+}
+
+async function deleteCustomer(cid){
+  const choice = confirm("请选择操作：\n【确定】=归档该顾客（保留全部资料，顾客无法登录，同手机号注册可以恢复）\n【取消】=关闭弹窗，再次点删除可以做永久彻底删除");
+  if(choice){
+    const cus = customerData.find(x=>x.id===cid);
+    cus.isDeleted = true;
+    await saveOneCustomer(cus);
+    await refreshAllCustomer();
+    showOneCustomer(cid);
+  }else{
+    const hardDel = confirm("⚠️确认【永久彻底删除】该顾客？所有资料全部清除，无法找回！");
+    if(hardDel){
+      await supabase.from('customer_list').delete().eq('id',cid);
+      await refreshAllCustomer();
+      renderCustomerListView();
+    }
+  }
+}
+async function restoreCustomer(cid){
+  if(!confirm("确定恢复该归档顾客？恢复后顾客可以正常登录，重新出现在普通顾客列表")) return;
+  const cus = customerData.find(x=>x.id===cid);
+  cus.isDeleted = false;
+  await saveOneCustomer(cus);
+  await refreshAllCustomer();
+  showOneCustomer(cid);
+}
+
+let editPanelOpen = false;
+function toggleEditCustomerPanel(){
+  editPanelOpen = !editPanelOpen;
+  const panelDom = document.getElementById("editCustomerPanel");
+  if(editPanelOpen){
+    panelDom.classList.remove("hide");
+    filterCustomerList();
+  }else{
+    panelDom.classList.add("hide");
+  }
+}
+function renderSelectCustomerView(){
+  document.getElementById("searchCustomerInput").value = "";
+  document.getElementById("editSelectedText").innerText = "";
+  editPanelOpen = false;
+  document.getElementById("editCustomerPanel").classList.add("hide");
+}
+function filterCustomerList(){
+  const keyword = document.getElementById("searchCustomerInput").value.trim().toLowerCase();
+  const box = document.getElementById("selectCustomerBox");
+  box.innerHTML="";
+  customerData.forEach(cus=>{
+    if(cus.isDeleted === true) return;
+    if(cus.name.toLowerCase().includes(keyword)){
+      box.innerHTML+=`<button class="btn-primary" onclick="openEditCustomer(${cus.id})">${cus.name}</button>`;
+    }
+  })
+}
+function openEditCustomer(cid){
+  toggleEditCustomerPanel();
+  const cus = customerData.find(x=>x.id===cid);
+  document.getElementById("editSelectedText").innerText = "已选择："+cus.name;
+  currentEditCustomerId = cid;
+  const item = customerData.find(x=>x.id===cid);
+  document.getElementById("editName").value=`姓名：${item.name}`;
+  document.getElementById("editBirth").value=`生日：${item.birth||''}`;
+  document.getElementById("editPhone").value=`手机号：${item.phone}`;
+  document.getElementById("editPoint").value=item.point;
+  document.getElementById("editCoupon").value=item.coupon;
+  renderProductSelect();
+  document.getElementById("showProdCount").innerText = "无";
+  showPage("pageEditCustomer");
+}
+function renderProductSelect(){
+  const sel=document.getElementById("prodSelectBox");
+  sel.innerHTML=`<option value="">--选择产品--</option>`;
+  productData.forEach(p=>{
+    sel.innerHTML+=`<option value="${p.id}">${p.name}｜Rm${p.price}</option>`;
+  })
+}
+function refreshShowProdCount(){
+  const pid = Number(document.getElementById("prodSelectBox").value);
+  const cus = customerData.find(x=>x.id===currentEditCustomerId);
+  if(!pid){
+    document.getElementById("showProdCount").innerText = "无";
     return;
   }
-  let html = "";
-  customerList.forEach(c=>{
-    html += `
-    <div class="customer-item">
-      <p>姓名：${c.name}｜手机号：${c.phone}</p>
-      <p>生日：${c.birthday}</p>
-      <p>优惠券：<input id="cp_${c.id}" value="${c.coupon}" style="width:80px"></p>
-      <p>会员分数：<input id="pt_${c.id}" value="${c.points}" style="width:80px"></p>
-      <button class="btn-save" onclick="saveEdit('${c.id}')">保存修改</button>
-      <button class="btn-del" onclick="delCustomer('${c.id}')">注销顾客</button>
-    </div>`
-  })
-  document.getElementById("listWrap").innerHTML = html;
+  const existItem = cus.bindProducts.find(b=>b.prodId === pid);
+  if(existItem){
+    document.getElementById("showProdCount").innerText = existItem.count;
+  }else{
+    document.getElementById("showProdCount").innerText = "无";
+  }
 }
-function toggleDelView(){
-  showDeleted = !showDeleted;
-  loadAllCustomer();
+async function addProductCount(){
+  const pid = Number(document.getElementById("prodSelectBox").value);
+  if(!pid){
+    alert("请先选择产品");
+    return;
+  }
+  const prod = productData.find(x=>x.id===pid);
+  const cus = customerData.find(x=>x.id===currentEditCustomerId);
+  const existItem = cus.bindProducts.find(b=>b.prodId === pid);
+  if(existItem){
+    existItem.count +=1;
+  }else{
+    cus.bindProducts.push({
+      prodId:pid,
+      prodName:prod.name,
+      count:1
+    })
+  }
+  await saveOneCustomer(cus);
+  refreshShowProdCount();
+  alert("已 +1次");
 }
-async function saveEdit(cid){
-  const newCoupon = document.getElementById("cp_"+cid).value.trim();
-  const newPoint = parseInt(document.getElementById("pt_"+cid).value);
-  await supabase.from('customer_list').update({coupon:newCoupon,points:newPoint}).eq('id',cid);
-  alert("✅修改保存成功");
-  loadAllCustomer();
+async function subProductCount(){
+  const pid = Number(document.getElementById("prodSelectBox").value);
+  if(!pid){
+    alert("请先选择产品");
+    return;
+  }
+  const cus = customerData.find(x=>x.id===currentEditCustomerId);
+  const existItem = cus.bindProducts.find(b=>b.prodId === pid);
+  if(!existItem){
+    alert("该顾客还没有此产品，不能扣减");
+    return;
+  }
+  if(existItem.count <=0){
+    alert("次数已经为0，无法继续扣减");
+    return;
+  }
+  existItem.count -=1;
+  await saveOneCustomer(cus);
+  refreshShowProdCount();
+  alert("已 -1次");
 }
-async function delCustomer(cid){
-  if(!confirm("确认注销该顾客账号？注销之后顾客无法登录，可在隐藏列表查看历史资料")) return;
-  await supabase.from('customer_list').update({is_deleted:true}).eq('id',cid);
-  alert("注销完成");
-  loadAllCustomer();
+async function saveCustomerEdit(){
+  const cus = customerData.find(x=>x.id===currentEditCustomerId);
+  let rawPoint = document.getElementById("editPoint").value.trim();
+  let rawCoupon = document.getElementById("editCoupon").value.trim();
+  cus.point = Number(rawPoint);
+  cus.coupon = Number(rawCoupon);
+  await saveOneCustomer(cus);
+  await refreshAllCustomer();
+  alert("保存更新完成");
 }
-window.onload = loadAllCustomer;
-</script>
-</body>
-</html>
 
+function renderProductManageView(){
+  const box = document.getElementById("renderProductList");
+  box.innerHTML="";
+  productData.forEach((p)=>{
+    const div = document.createElement("div");
+    div.className="product-item";
+    div.innerHTML=`
+      <div class="product-info">${p.name}｜Rm${p.price}</div>
+      <div class="product-actions">
+        <button class="btn-success prod‑edit‑btn" data-prod-id="${p.id}">修改</button>
+        <button class="btn-danger prod‑del‑btn" data-prod-id="${p.id}">删除</button>
+      </div>
+    `;
+    box.appendChild(div);
+  })
+}
+document.getElementById("renderProductList").addEventListener("click",async function(e){
+  const target = e.target;
+  const prodIdStr = target.dataset.prodId;
+  if(!prodIdStr) return;
+  const prodId = Number(prodIdStr);
+  if(target.classList.contains("prod‑edit‑btn")){
+    openEditProductModal(prodId);
+  }else if(target.classList.contains("prod‑del‑btn")){
+    if(!confirm("确认永久删除该产品？")) return;
+    await deleteProductRemote(prodId);
+    await refreshAllProduct();
+    renderProductManageView();
+  }
+})
+funct
